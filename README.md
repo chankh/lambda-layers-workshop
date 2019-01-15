@@ -246,6 +246,7 @@ $ aws lambda update-function-code --function-name bash-runtime --zip-file fileb:
     ]
     ...
 }
+```
 
 Invoke the function to verify that it works with the runtime layer.
 ```shell
