@@ -134,6 +134,9 @@ and add them to a ZIP archive.
 ```shell
 $ chmod 755 function.sh bootstrap
 $ zip function.zip function.sh bootstrap
+```
+Output:
+```
   adding: function.sh (deflated 24%)
   adding: bootstrap (deflated 39%)
 ```
@@ -142,7 +145,10 @@ Create a function named `bash-runtime`. Remember to change `123456789012` to you
 ```shell
 $ aws lambda create-function --function-name bash-runtime \
 --zip-file fileb://function.zip --handler function.handler --runtime provided \
---role arn:aws:iam::123456789012:role/lambda-role
+--role arn:aws:iam::123456789012:role/lambda_basic_execution
+```
+Output:
+```
 {
     "FunctionName": "bash-runtime",
     "FunctionArn": "arn:aws:lambda:ap-southeast-1:123456789012:function:bash-runtime",
@@ -166,11 +172,17 @@ $ aws lambda create-function --function-name bash-runtime \
 Invoke the function and verify the response.
 ```shell
 $ aws lambda invoke --function-name bash-runtime --payload '{"text":"Hello"}' response.txt
+```
+Output:
+```
 {
     "StatusCode": 200,
     "ExecutedVersion": "$LATEST"
 }
-runtime-tutorial$ cat response.txt
+```
+Check the response from Lambda.
+```
+$ cat response.txt
 Echoing request: '{"text":"Hello"}'
 ```
 
@@ -182,12 +194,18 @@ you use the same layer with multiple functions.
 Create a layer archive that contains the `bootstrap` file.
 ```shell
 $ zip runtime.zip bootstrap
+```
+Output:
+```
   adding: bootstrap (deflated 39%)
 ````
 
 Create a layer with the `publish-layer-version` command.
 ```shell
 $ aws lambda publish-layer-version --layer-name bash-runtime --zip-file fileb://runtime.zip
+```
+Output:
+```
  {
     "Content": {
         "Location": "https://awslambda-ap-southeast-1-layers.s3.ap-southeast-1.amazonaws.com/snapshots/123456789012/bash-runtime-018c209b...",
@@ -214,6 +232,9 @@ AWS account ID.
 ```shell
 $ aws lambda update-function-configuration --function-name bash-runtime \
 --layers arn:aws:lambda:ap-southeast-1:123456789012:layer:bash-runtime:1
+```
+Output:
+```
 {
     "FunctionName": "bash-runtime",
     "Layers": [
@@ -230,10 +251,21 @@ $ aws lambda update-function-configuration --function-name bash-runtime \
 This adds the runtime to the function in the `/opt` directory. Lambda uses this runtime, but only if
 you remove it from the function's deployment package. Update the function code to only include the
 handler script.
+
+First create a package with only `function.sh`.
 ```shell
 $ zip function-only.zip function.sh
+```
+Output:
+```
   adding: function.sh (deflated 24%)
+```
+Then update the Lambda function with the new code package.
+```
 $ aws lambda update-function-code --function-name bash-runtime --zip-file fileb://function-only.zip
+```
+Output:
+```
 {
     "FunctionName": "bash-runtime",
     "CodeSize": 270,
@@ -251,11 +283,20 @@ $ aws lambda update-function-code --function-name bash-runtime --zip-file fileb:
 Invoke the function to verify that it works with the runtime layer.
 ```shell
 $ aws lambda invoke --function-name bash-runtime --payload '{"text":"Hello"}' response.txt
+```
+Output:
+```
 {
     "StatusCode": 200,
     "ExecutedVersion": "$LATEST"
 }
-runtime-tutorial$ cat response.txt
+```
+Check the response received from Lambda.
+```
+$ cat response.txt
+```
+Output:
+```
 Echoing request: '{"text":"Hello"}'
 ```
 
